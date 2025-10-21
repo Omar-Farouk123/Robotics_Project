@@ -1,0 +1,9 @@
+# Ignore ROS2 build/install/log folders
+robotics_workspace/build/
+robotics_workspace/install/
+robotics_workspace/log/
+
+# Ignore common build outputs
+**/build/
+**/install/
+**/log/
