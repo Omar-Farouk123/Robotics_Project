@@ -1,0 +1,26 @@
+newmtl Industrial_Hanging_Ceiling_Light_Type_B_Yellow
+Kd 1 1 1
+Ke 0 0 0
+d 1
+illum 1
+map_Kd _img0.png
+bump _img2.png
+map_bump _img2.png
+
+newmtl Industrial_Hanging_Ceiling_Light_Type_B_Red
+Kd 1 1 1
+Ke 0 0 0
+d 1
+illum 1
+map_Kd _img3.png
+bump _img5.png
+map_bump _img5.png
+
+newmtl Industrial_Hanging_Ceiling_Light_Type_B_Black
+Kd 1 1 1
+Ke 0 0 0
+d 1
+illum 1
+map_Kd _img6.png
+bump _img5.png
+map_bump _img5.png

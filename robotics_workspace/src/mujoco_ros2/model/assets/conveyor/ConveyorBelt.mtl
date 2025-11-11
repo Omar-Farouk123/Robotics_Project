@@ -1,0 +1,14 @@
+# File produced by Open Asset Import Library (http://www.assimp.sf.net)
+# (assimp v5.2.0)
+
+newmtl Material #0
+Kd 0.588 0.588 0.588
+Ka 0.588 0.588 0.588
+Ks 0.899999976 0.899999976 0.899999976
+Ke 0 0 0
+Tf 0 0 0
+d 1
+Ns 2
+illum 2
+map_Kd ..\..\..\..\..\..\Desktop\Complete Textures\Conveyor Belt.png
+
