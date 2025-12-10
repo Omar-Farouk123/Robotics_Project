@@ -5,8 +5,8 @@ from std_msgs.msg import Float64MultiArray
 import numpy as np
 import os
 
-TRAJECTORY_FILE = "/home/xrgontu/Desktop/Robotics_Project/joint_space_trajectory.npy"  
-# TRAJECTORY_FILE = "/home/xrgontu/Desktop/Robotics_Project/task_space_trajectory.npy"  
+# TRAJECTORY_FILE = "/home/xrgontu/Desktop/Robotics_Project/Milestone 04/joint_space_trajectory.npy"  
+TRAJECTORY_FILE = "/home/xrgontu/Desktop/Robotics_Project/Milestone 04/task_space_trajectory.npy"  
 
 class JointTrajectoryPublisher(Node):
     def __init__(self):

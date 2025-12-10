@@ -3,18 +3,13 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 
-
 def generate_launch_description():
-
-    directory = get_package_share_directory(
-        "mujoco_ros2"
-    )  # Gets relative path of mujoco_ros2 package
-
+    directory = get_package_share_directory("mujoco_ros2")
     xmlScenePath = os.path.join(directory, "model", "scene.xml")
-
+    
     if not os.path.exists(xmlScenePath):
         raise FileNotFoundError(f"Scene file does not exist: {xmlScenePath}.")
-
+    
     mujoco = Node(
         package="mujoco_ros2",
         executable="mujoco_node",
@@ -29,5 +24,11 @@ def generate_launch_description():
             {"camera_name": "overview"},
         ],
     )
-
-    return LaunchDescription([mujoco])
+    
+    coffee_controller = Node(
+        package="mujoco_ros2",
+        executable="robotics_workspace/src/mujoco_ros2/src/nodes/coffee_conveyor_controller.py",
+        output="screen",
+    )
+    
+    return LaunchDescription([mujoco, coffee_controller])
