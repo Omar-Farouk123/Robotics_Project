@@ -12,7 +12,7 @@ class JointTrajectoryPublisher(Node):
     def __init__(self):
         super().__init__('joint_trajectory_publisher')
 
-        self.pub = self.create_publisher(Float64MultiArray, '/joint_commands', 10)
+        self.pub = self.create_publisher(Float64MultiArray, '/robot_joint_commands', 10)
 
         # Load trajectory from file
         if not os.path.exists(TRAJECTORY_FILE):

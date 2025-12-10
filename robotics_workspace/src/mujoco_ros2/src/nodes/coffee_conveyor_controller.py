@@ -2,7 +2,7 @@
 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float64MultiArray
+from std_msgs.msg import Float64MultiArray, MultiArrayDimension
 from sensor_msgs.msg import JointState
 import numpy as np
 
@@ -13,7 +13,7 @@ class CoffeeConveyorController(Node):
         # Publisher to control coffee machine position via joint commands
         self.joint_cmd_pub = self.create_publisher(
             Float64MultiArray, 
-            'joint_commands', 
+            'joint_commands',  # Changed from 'joint_commands' to match mujoco_node
             10
         )
         
@@ -26,12 +26,12 @@ class CoffeeConveyorController(Node):
         )
         
         # Conveyor parameters (positions along x-axis)
-        self.START_POS = -3.0      # Start position (left side)
-        self.MIDDLE_POS = -2.8   # Middle position (pause here)
-        self.END_POS = -2        # End position (right side)
+        self.START_POS = -2.0      # Start position (left side)
+        self.MIDDLE_POS = -1.0     # Middle position (pause here)
+        self.END_POS = 0.5         # End position (right side)
         
-        self.SPEED = 0.2  # m/s
-        self.PAUSE_DURATION = 4.0  # seconds
+        self.SPEED = 0.3  # m/s
+        self.PAUSE_DURATION = 2.0  # seconds
         
         # State tracking
         self.current_phase = 'start'
@@ -43,10 +43,13 @@ class CoffeeConveyorController(Node):
         self.num_joints = None
         self.joint_names = []
         self.current_joint_positions = None
+        self.initialized = False
         
         # Create timer for animation loop (100 Hz)
         self.timer = self.create_timer(0.01, self.animation_callback)
         
+        self.get_logger().info('Coffee Conveyor Controller Started')
+        self.get_logger().info('Waiting for joint state information...')
         
     def joint_state_callback(self, msg):
         """Callback to get joint state information"""
@@ -55,27 +58,48 @@ class CoffeeConveyorController(Node):
             self.joint_names = msg.name
             self.num_joints = len(msg.name)
             
+            self.get_logger().info(f'Available joints: {msg.name}')
+            
             if 'coffee_slide' in msg.name:
                 self.coffee_joint_index = msg.name.index('coffee_slide')
+                self.get_logger().info(f'Found coffee_slide at index {self.coffee_joint_index}')
+                self.get_logger().info(f'Total joints: {self.num_joints}')
+                self.get_logger().info(f'Initial coffee_slide position: {msg.position[self.coffee_joint_index]}')
             else:
-                pass  # Joint not found yet
+                self.get_logger().warn('coffee_slide joint not found! Available joints: ' + str(msg.name))
         
         # Store current joint positions
         self.current_joint_positions = list(msg.position)
         
     def publish_joint_command(self, coffee_position):
         """Publish joint command with coffee machine at specified position"""
-        if self.coffee_joint_index is None or self.current_joint_positions is None:
+        if self.coffee_joint_index is None or self.num_joints is None:
+            self.get_logger().warn('Cannot publish - joint info not ready')
             return
         
-        # Create command array with all joint positions
+        # Create command array with proper dimensions
         cmd = Float64MultiArray()
-        cmd.data = self.current_joint_positions.copy()
+        
+        # Add dimension information (required by mujoco_node)
+        dim = MultiArrayDimension()
+        dim.label = "joints"
+        dim.size = self.num_joints
+        dim.stride = self.num_joints
+        cmd.layout.dim.append(dim)
+        cmd.layout.data_offset = 0
+        
+        # Initialize all joints to 0 (safe position for robot arm)
+        cmd.data = [0.0] * self.num_joints
         
         # Update only the coffee machine slide joint
         cmd.data[self.coffee_joint_index] = coffee_position
         
         self.joint_cmd_pub.publish(cmd)
+        
+        if not self.initialized:
+            self.get_logger().info(f'First command published: coffee_slide = {coffee_position:.3f}')
+            self.get_logger().info(f'Total joints: {self.num_joints}, Command array length: {len(cmd.data)}')
+            self.initialized = True
         
     def animation_callback(self):
         """Main animation loop"""
@@ -95,11 +119,14 @@ class CoffeeConveyorController(Node):
                 t = elapsed / duration
                 position = self.START_POS + t * (self.MIDDLE_POS - self.START_POS)
                 self.publish_joint_command(position)
+                if int(elapsed * 10) % 10 == 0:  # Log every second
+                    self.get_logger().info(f'Phase: start, Position: {position:.3f}, Progress: {t*100:.1f}%')
             else:
                 # Reached middle, start pause
                 self.current_phase = 'pause'
                 self.phase_start_time = current_time
                 self.publish_joint_command(self.MIDDLE_POS)
+                self.get_logger().info('Reached middle - pausing for 2 seconds')
                 
         elif self.current_phase == 'pause':
             # Phase 2: Pause at middle
@@ -111,6 +138,7 @@ class CoffeeConveyorController(Node):
                 # Pause complete, continue moving
                 self.current_phase = 'continue'
                 self.phase_start_time = current_time
+                self.get_logger().info('Continuing to end position')
                 
         elif self.current_phase == 'continue':
             # Phase 3: Move from middle to end
@@ -125,18 +153,11 @@ class CoffeeConveyorController(Node):
             else:
                 # Reached end, reset
                 self.publish_joint_command(self.END_POS)
+                self.get_logger().info('Reached end - resetting to start')
                 
                 # Reset to start
                 self.current_phase = 'start'
                 self.animation_start_time = current_time
-                # Small delay before reset
-                self.timer.cancel()
-                self.timer = self.create_timer(1.0, self.reset_callback)
-                
-    def reset_callback(self):
-        """Reset and restart animation"""
-        self.timer.cancel()
-        self.timer = self.create_timer(0.01, self.animation_callback)
 
 
 def main(args=None):

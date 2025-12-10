@@ -32,7 +32,7 @@
 		<geom name="floor" type="plane" pos="0 0 -0.1" size="30 30 0.1" rgba="0.8 0.9 0.8 1"
 			material="mat_ground" />
 		<!-- Conveyor belt - try fine-tuning with these values -->
-		<body name="conveyor" pos="-1.0 0 0" euler="1.6 0 0">
+		<body name="conveyor" pos="-1.27 0 0" euler="1.6 0 0">
 			<geom type="mesh" mesh="conveyor" material="conveyor_mat" />
 		</body>
 
@@ -49,7 +49,7 @@
 			<geom type="mesh" mesh="ceiling_lights" material="ceiling_lights_mat" />
 		</body>
 
-		<body name="coffee_machine_body" pos="-0.8 2 0.8" euler="1.6 1.6 0">    
+		<body name="coffee_machine_body" pos="-1.07 2 0.8" euler="1.6 1.6 0">    
 			<joint name="coffee_slide" type="slide" axis="1 0 0" limited="true" range="-2 0"/>
 			<geom type="mesh" mesh="coffee_machine" material="coffee_machine_mat" />
 		</body>
